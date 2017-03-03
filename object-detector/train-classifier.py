@@ -9,6 +9,7 @@ import glob
 import os
 from config import *
 import numpy as np
+import pickle
 
 if __name__ == "__main__":
     # Parse the command line arguments
@@ -27,20 +28,22 @@ if __name__ == "__main__":
     fds = []
     labels = []
     n_pos_train = 5000
+    pos_feat = pickle.load(open(os.path.join(pos_feat_ph, 'pos.p'), 'rb'))
     # Load the positive features
     for i in list(range(0,n_pos_train)):
-        feat_path = glob.glob(os.path.join(pos_feat_path,"*.feat"))[i]
-        fd = joblib.load(feat_path)
+        fd = pos_feat[i]
         fds.append(fd)
         labels.append(1)
+    del pos_feat
 
+    neg_feat = pickle.load(open(os.path.join(neg_feat_ph, 'neg.p'), 'rb'))
     # Load the negative features
     n_neg_train = 5000
     for i in list(range(0,n_neg_train)):
-        feat_path = glob.glob(os.path.join(neg_feat_path,"*.feat"))[i]
-        fd = joblib.load(feat_path)
+        fd = neg_feat[i]
         fds.append(fd)
         labels.append(0)
+    del neg_feat
 
     print(type(fds))
     print(fds[0])

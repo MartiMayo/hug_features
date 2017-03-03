@@ -17,16 +17,15 @@ import os
 #os.system("python ../object-detector/extract-features.py -p {} -n {}".format(pos_path, neg_path))
 
 # Perform training
-# pos_feat_path =  "../data/features/pos"
-# neg_feat_path =  "../data/features/neg"
-# os.system("python ../object-detector/train-classifier.py -p {} -n {}".format(pos_feat_path, neg_feat_path))
-
+pos_feat_path =  "../data/features/pos"
+neg_feat_path =  "../data/features/neg"
+os.system("python ../object-detector/train-classifier.py -p {} -n {}".format(pos_feat_path, neg_feat_path))
 
 # Perform validation
 pos_feat_path =  "../data/features/pos"
 neg_feat_path =  "../data/features/neg"
 os.system("python ../object-detector/validation-classifier.py -p {} -n {}".format(pos_feat_path, neg_feat_path))
 
-# Perform testing 
+# Perform testing
 #test_im_path = "../data/dataset/CarData/TestImages/03pred.pgm"
 #os.system("python ../object-detector/test-classifier.py -i {} --visualize".format(test_im_path))

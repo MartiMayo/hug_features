@@ -10,6 +10,7 @@ import os
 import numpy as np
 from config import *
 from scipy.misc import toimage
+import pickle
 
 if __name__ == "__main__":
     # Argument Parser
@@ -24,7 +25,7 @@ if __name__ == "__main__":
 
     pos_im_path = args["pospath"]
     neg_im_path = args["negpath"]
-	
+
     des_type = args["descriptor"]
 
     # If feature directories don't exist, create them
@@ -35,6 +36,7 @@ if __name__ == "__main__":
     if not os.path.isdir(neg_feat_ph):
         os.makedirs(neg_feat_ph)
 
+    list_pos = []
     print "Calculating the descriptors for the positive samples and saving them"
     for im_path in glob.glob(os.path.join(pos_im_path, "*")):
         im = np.load(im_path)
@@ -44,10 +46,12 @@ if __name__ == "__main__":
         im = np.asarray(im)
         if des_type == "HOG":
             fd = hog(im, orientations, pixels_per_cell, cells_per_block, visualize, normalize)
-        fd_name = os.path.split(im_path)[1].split(".")[0] + ".feat"
-        fd_path = os.path.join(pos_feat_ph, fd_name)
-        joblib.dump(fd, fd_path)
+            list_pos.append(fd)
+    pickle.dump(list_pos, open(os.path.join(pos_feat_ph, 'pos.p'), 'wb'))
+    del list_pos
     print "Positive features saved in {}".format(pos_feat_ph)
+
+    list_neg = []
     print "Calculating the descriptors for the negative samples and saving them"
     for im_path in glob.glob(os.path.join(neg_im_path, "*")):
         im = np.load(im_path)
@@ -57,9 +61,8 @@ if __name__ == "__main__":
         im = np.asarray(im)
         if des_type == "HOG":
             fd = hog(im,  orientations, pixels_per_cell, cells_per_block, visualize, normalize)
-        fd_name = os.path.split(im_path)[1].split(".")[0] + ".feat"
-        fd_path = os.path.join(neg_feat_ph, fd_name)
-        joblib.dump(fd, fd_path)
+            list_neg.append(fd)
+    pickle.dump(list_neg, open(os.path.join(neg_feat_ph, 'neg.p'), 'wb'))
     print "Negative features saved in {}".format(neg_feat_ph)
 
     print "Completed calculating features from training images"
