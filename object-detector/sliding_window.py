@@ -3,7 +3,6 @@ import os
 import sys
 import glob
 import random
-from config import *
 
 def load_patient(path):
 	"""
@@ -23,11 +22,12 @@ def obtain_slices_with_nodules(patient):
 			slices.append(i)
 	return slices
 
-def get_label(image, x, y, window_size, nodules_image, nodules_image_sum):
+def get_label(image, x, y, window_size, nodules_image, nodules_image_sum, total_area):
 	"""
 	Check whether the window fully contains at least half of the tumor (we assume a single tumor for slice)
 	"""
-	return nodules_image[y: y + window_size[1], x: x + window_size[0]].sum() >= nodules_image_sum / 2
+	nodules_in_window = nodules_image[y: y + window_size[1], x: x + window_size[0]].sum()
+	return (nodules_in_window >= total_area/2) or (nodules_in_window >= nodules_image_sum/2)
 
 def window_area(window_size):
 	return window_size[0] * window_size[1]
@@ -41,16 +41,17 @@ def is_inside_lung(x, y, window_size, lung_image):
 def is_inside_image(image, x, y, window_size):
 	return ((y + window_size[1] <= image.shape[0]) and (x + window_size[0] <= image.shape[1]))
 
-def patch_image_and_label(image, step_size, window_size, lung_image, nodules_image, nodules_image_sum):
+def patch_image_and_label(image, step_size, window_size, lung_image, nodules_image, nodules_image_sum, total_area):
 	for y in xrange(0, image.shape[0], step_size[1]):
 		for x in xrange(0, image.shape[1], step_size[0]):
 			if (is_inside_image(image, x, y, window_size) and is_inside_lung(x, y, window_size, lung_image)):
-				yield (x, y, image[y: y + window_size[1], x: x + window_size[0]], get_label(image, x, y, window_size, nodules_image, nodules_image_sum))
+				yield (x, y, image[y: y + window_size[1], x: x + window_size[0]], get_label(image, x, y, window_size, nodules_image, nodules_image_sum, total_area))
 
 if __name__ == '__main__':
-	path_to_images = '/home/mmc/Downloads/luna_preprocess/'
-	path_to_positives = '/home/mmc/Downloads/luna_preprocess/positives/'
-	path_to_negatives = '/home/mmc/Downloads/luna_preprocess/negatives/'
+	path_to_images = 'D:/hug_features/luna_preprocess/'
+	path_to_positives = 'D:/hug_features/data/luna_preprocess/positives/'
+	path_to_negatives = 'D:/hug_features/data/luna_preprocess/negatives/'
+	total_area = window_area(window_size)
 	pos_counter=1
 	neg_counter=1
 	for file_path in glob.glob(path_to_images + "*npz"):
@@ -67,7 +68,7 @@ if __name__ == '__main__':
 	    		level0_image = patient[0, sl]
 	    		level1_image = patient[1, sl]
 	    		level2_image = patient[2, sl]
-		    	patched_image = patch_image_and_label(level0_image, step_size, min_wdw_sz, level1_image, level2_image, level2_image.sum())
+		    	patched_image = patch_image(level0_image, step_size, min_wdw_sz, level1_image, level2_image, level2_image.sum(), total_area)
 		    	list_patches = list(patched_image)
 		    	print("Dumping the results: slice " + str(si+1) + " out of " + str(len(slices_with_nodules)))
 		    	for i, patch in enumerate(list_patches):
@@ -81,3 +82,5 @@ if __name__ == '__main__':
 		    			neg_counter += 1
 	    else:
 	    	print("Patient " + file_path + " has no slices with nodules")
+
+	

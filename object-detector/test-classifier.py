@@ -7,12 +7,15 @@ import cv2
 import argparse as ap
 from nms import nms
 from config import *
+import warnings
 import numpy as np
+from scipy.misc import toimage
+warnings.filterwarnings('ignore')
 
 def sliding_window(image, window_size, step_size):
     '''
     This function returns a patch of the input image `image` of size equal
-    to `window_size`. The first image returned top-left co-ordinates (0, 0)
+    to `window_size`. The first image returned top-left co-ordinates (0, 0) 
     and are increment in both x and y directions by the `step_size` supplied.
     So, the input parameters are -
     * `image` - Input Image
@@ -42,9 +45,12 @@ if __name__ == "__main__":
 
     # Read the image
     im = np.load(args["image"])
-    im = im - im.min()
+    key = im.keys()[0]
+    im = im[key]
+    im = toimage(im)
+    im = np.asarray(im)
     min_wdw_sz = (32, 32)
-    step_size = (10, 10)
+    step_size = (20, 20)
     downscale = args['downscale']
     visualize_det = args['visualize']
 
@@ -68,11 +74,12 @@ if __name__ == "__main__":
                 continue
             # Calculate the HOG features
             fd = hog(im_window, orientations, pixels_per_cell, cells_per_block, visualize, normalize)
-            pred = clf.predict(fd)
-            if pred == 1:
+            pred = clf.predict_proba(fd)[:,1]
+            #print pred
+            if pred > 0.55:
                 print  "Detection:: Location -> ({}, {})".format(x, y)
-                print "Scale ->  {} | Confidence Score {} \n".format(scale,clf.decision_function(fd))
-                detections.append((x, y, clf.decision_function(fd),
+                print "Scale ->  {} | Confidence Score {} \n".format(scale,pred)
+                detections.append((x, y, pred,
                     int(min_wdw_sz[0]*(downscale**scale)),
                     int(min_wdw_sz[1]*(downscale**scale))))
                 cd.append(detections[-1])

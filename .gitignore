@@ -1,3 +1,7 @@
 *.feat
 *.npz
 *.pyc
+data/features
+data/models
+data/images
+

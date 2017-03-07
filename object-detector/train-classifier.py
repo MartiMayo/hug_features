@@ -10,6 +10,8 @@ import os
 from config import *
 import numpy as np
 import pickle
+from sklearn import metrics
+import random
 
 if __name__ == "__main__":
     # Parse the command line arguments
@@ -25,38 +27,61 @@ if __name__ == "__main__":
     # Classifiers supported
     clf_type = args['classifier']
 
-    fds = []
-    labels = []
-    n_pos_train = 5000
+    random.seed(20)
+
     pos_feat = pickle.load(open(os.path.join(pos_feat_ph, 'pos.p'), 'rb'))
-    # Load the positive features
-    for i in list(range(0,min(n_pos_train, len(pos_feat)))):
-        fd = pos_feat[i]
-        fds.append(fd)
-        labels.append(1)
-    del pos_feat
+    pos_feat = np.vstack(pos_feat)
+    n_pos_train = 15000
+    idx_pos =  np.random.choice(len(pos_feat), size=n_pos_train,replace = False)
 
     neg_feat = pickle.load(open(os.path.join(neg_feat_ph, 'neg.p'), 'rb'))
-    # Load the negative features
-    n_neg_train = 5000
-    for i in list(range(0,min(n_neg_train, len(neg_feat)))):
-        fd = neg_feat[i]
-        fds.append(fd)
-        labels.append(0)
-    del neg_feat
+    neg_feat = np.vstack(neg_feat)
+    #neg_feat = neg_feat[np.arange(15000),:]
+    n_neg_train = 15000
+    idx_neg = np.random.choice(len(neg_feat),size = n_neg_train,replace = True) + len(pos_feat)
 
-    print(type(fds))
-    print(fds[0])
-    fds_array = np.array(fds)
-    labels_array = np.array(labels)
-    print(fds_array.shape)
+    idx = np.concatenate((idx_pos,idx_neg),axis = 0)
+    fds = np.concatenate((pos_feat,neg_feat),axis = 0)
+    labels = np.concatenate((np.full((len(pos_feat)),1),np.full((len(neg_feat)),0)),axis = 0)
+    # Training
+    fds_train = fds[idx,:]
+    labels_train = labels[idx]
+    # Testing
+    fds_test = fds[~idx,:]
+    labels_test = labels[~idx]
+    clf = RandomForestClassifier(n_estimators=200, n_jobs = 5)
+    print "Training ..."
+    clf.fit(fds_train, labels_train)
+    # If feature directories don't exist, create them
+    
+    preds = clf.predict_proba(fds_test)[:,1]
+    threshold = 0.55 
+    fpr, tpr, thresholds = metrics.roc_curve(labels_test, preds, pos_label=1)
+    sc = clf.score(fds_test, labels_test)
+    print("The score is: " + str(sc))
+    print("The auc is: " + str(metrics.auc(fpr,tpr)))
+    print (labels_test[preds > threshold])
+    print sum(labels_test[preds > threshold]/sum(labels_test))
+    index_neg = (labels_test == 0) & (preds > threshold)
+    index_pos = (labels_test == 1) & (preds < threshold)
+    index_total = (index_neg) | (index_pos)
+    print len(labels_test[index_neg])
+    print len(labels_test[index_pos])
 
-    if clf_type is "LIN_SVM":
-        clf = LinearSVC()
-        print "Training a Linear SVM Classifier"
-        clf.fit(fds_array, labels_array)
-        # If feature directories don't exist, create them
-        if not os.path.isdir(os.path.split(model_path)[0]):
-            os.makedirs(os.path.split(model_path)[0])
-        joblib.dump(clf, model_path)
-        print "Classifier saved to {}".format(model_path)
+    # Hard negative mining
+    fds_total = np.concatenate((fds_train,fds_test[index_total]), axis = 0)
+    labels_total = np.concatenate((labels_train,labels_test[index_total]), axis = 0)
+    clf.fit(fds_total,labels_total)
+    if not os.path.isdir(os.path.split(model_path)[0]):
+        os.makedirs(os.path.split(model_path)[0])
+    joblib.dump(clf, model_path)
+
+    print "Classifier saved to {}".format(model_path)
+    preds = clf.predict_proba(fds_test)[:,1]
+       
+    fpr, tpr, thresholds = metrics.roc_curve(labels_test, preds, pos_label=1)
+    sc = clf.score(fds_test, labels_test)
+    print("The score is: " + str(sc))
+    print("The auc is: " + str(metrics.auc(fpr,tpr)))
+    print (labels_test[preds > threshold])
+    print sum(labels_test[preds > threshold]/sum(labels_test))
