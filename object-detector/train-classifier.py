@@ -30,7 +30,7 @@ if __name__ == "__main__":
     n_pos_train = 5000
     pos_feat = pickle.load(open(os.path.join(pos_feat_ph, 'pos.p'), 'rb'))
     # Load the positive features
-    for i in list(range(0,n_pos_train)):
+    for i in list(range(0,min(n_pos_train, len(pos_feat)))):
         fd = pos_feat[i]
         fds.append(fd)
         labels.append(1)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     neg_feat = pickle.load(open(os.path.join(neg_feat_ph, 'neg.p'), 'rb'))
     # Load the negative features
     n_neg_train = 5000
-    for i in list(range(0,n_neg_train)):
+    for i in list(range(0,min(n_neg_train, len(neg_feat)))):
         fd = neg_feat[i]
         fds.append(fd)
         labels.append(0)

@@ -7,11 +7,12 @@ import cv2
 import argparse as ap
 from nms import nms
 from config import *
+import numpy as np
 
 def sliding_window(image, window_size, step_size):
     '''
     This function returns a patch of the input image `image` of size equal
-    to `window_size`. The first image returned top-left co-ordinates (0, 0) 
+    to `window_size`. The first image returned top-left co-ordinates (0, 0)
     and are increment in both x and y directions by the `step_size` supplied.
     So, the input parameters are -
     * `image` - Input Image
@@ -40,7 +41,8 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     # Read the image
-    im = imread(args["image"], as_grey=False)
+    im = np.load(args["image"])
+    im = im - im.min()
     min_wdw_sz = (32, 32)
     step_size = (10, 10)
     downscale = args['downscale']
