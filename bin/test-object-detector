@@ -12,19 +12,15 @@ import os
 #    os.system("tar -xvzf {} -C {}".format(dataset_path, os.path.split(dataset_path)[0]))
 
 # Extract the features
-pos_path = "/home/mmc/Downloads/luna_preprocess/positives"
-neg_path = "/home/mmc/Downloads/luna_preprocess/negatives"
+#pos_path = "/home/belizalde/Documents/hug_features/data/luna_preprocess/positives"
+#neg_path = "/home/belizalde/Documents/hug_features/data/luna_preprocess/negatives"
 #os.system("python ../object-detector/extract-features.py -p {} -n {}".format(pos_path, neg_path))
 
 # Perform training
 pos_feat_path =  "../data/features/pos"
 neg_feat_path =  "../data/features/neg"
-#s.system("python ../object-detector/train-classifier.py -p {} -n {}".format(pos_feat_path, neg_feat_path))
+os.system("python ../object-detector/train-classifier.py -p {} -n {}".format(pos_feat_path, neg_feat_path))
 
-# Perform validation
-#pos_feat_path =  "../data/features/pos"
-#neg_feat_path =  "../data/features/neg"
-#os.system("python ../object-detector/validation-classifier.py -p {} -n {}".format(pos_feat_path, neg_feat_path))
 
 # Perform testing
 #test_im_path = "/home/mmc/code/hog_features/data/images/testImage.npy"
@@ -32,5 +28,5 @@ neg_feat_path =  "../data/features/neg"
 
 
 # Score dataset
-path_to_dataset = "/home/mmc/Downloads/luna_preprocess/"
-os.system("python ../object-detector/score.py -d {}".format(path_to_dataset))
+#path_to_dataset = "/home/mmc/Downloads/luna_preprocess/"
+#os.system("python ../object-detector/score.py -d {}".format(path_to_dataset))

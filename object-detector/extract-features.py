@@ -40,13 +40,15 @@ if __name__ == "__main__":
     print "Calculating the descriptors for the positive samples and saving them"
     for im_path in glob.glob(os.path.join(pos_im_path, "*")):
         im = np.load(im_path)
-        key = im.keys()[0]
-        im = im[key]
+        im_rep = str.replace(im_path,pos_im_path + '/',"")
+        patient_id = np.array([float(str.split(im_rep,"_")[0])])
+        key_im = im.keys()[0]
+        im = im[key_im]
         im = toimage(im)
         im = np.asarray(im)
-        if des_type == "HOG":
-            fd = hog(im, orientations, pixels_per_cell, cells_per_block, visualize, normalize)
-            list_pos.append(fd)
+        fd = hog(im, orientations, pixels_per_cell, cells_per_block, visualize, normalize)
+        fd = np.concatenate((patient_id,fd))
+        list_pos.append(fd)
     pickle.dump(list_pos, open(os.path.join(pos_feat_ph, 'pos.p'), 'wb'))
     del list_pos
     print "Positive features saved in {}".format(pos_feat_ph)
@@ -54,14 +56,18 @@ if __name__ == "__main__":
     list_neg = []
     print "Calculating the descriptors for the negative samples and saving them"
     for im_path in glob.glob(os.path.join(neg_im_path, "*")):
-        im = np.load(im_path)
-        key = im.keys()[0]
-        im = im[key]
+        im = np.load(im_path) 
+        im_rep = str.replace(im_path ,neg_im_path + '/',"")
+        patient_id = np.array([float(str.split(im_rep,"_")[0])])
+        key_im = im.keys()[0]
+        im = im[key_im]
         im = toimage(im)
         im = np.asarray(im)
-        if des_type == "HOG":
-            fd = hog(im,  orientations, pixels_per_cell, cells_per_block, visualize, normalize)
-            list_neg.append(fd)
+        fd = hog(im,  orientations, pixels_per_cell, cells_per_block, visualize, normalize)
+        fd = np.concatenate((patient_id,fd))
+        list_neg.append(fd)
+        if len(list_neg) > 40000:
+            break
     pickle.dump(list_neg, open(os.path.join(neg_feat_ph, 'neg.p'), 'wb'))
     print "Negative features saved in {}".format(neg_feat_ph)
 

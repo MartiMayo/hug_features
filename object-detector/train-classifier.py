@@ -33,16 +33,23 @@ if __name__ == "__main__":
     pos_feat = np.vstack(pos_feat)
     n_pos_train = 15000
     idx_pos =  np.random.choice(len(pos_feat), size=n_pos_train,replace = False)
+    idx_pos = pos_feat[:,0]<20
+    pos_feat = np.delete(pos_feat, 0, axis = 1)
+    print pos_feat.shape
 
     neg_feat = pickle.load(open(os.path.join(neg_feat_ph, 'neg.p'), 'rb'))
     neg_feat = np.vstack(neg_feat)
     #neg_feat = neg_feat[np.arange(15000),:]
     n_neg_train = 15000
     idx_neg = np.random.choice(len(neg_feat),size = n_neg_train,replace = True) + len(pos_feat)
+    idx_neg = neg_feat[:,0] < 20
+    neg_feat = np.delete(neg_feat,0,axis = 1)
 
     idx = np.concatenate((idx_pos,idx_neg),axis = 0)
     fds = np.concatenate((pos_feat,neg_feat),axis = 0)
     labels = np.concatenate((np.full((len(pos_feat)),1),np.full((len(neg_feat)),0)),axis = 0)
+
+
     # Training
     fds_train = fds[idx,:]
     labels_train = labels[idx]
@@ -60,15 +67,12 @@ if __name__ == "__main__":
     sc = clf.score(fds_test, labels_test)
     print("The score is: " + str(sc))
     print("The auc is: " + str(metrics.auc(fpr,tpr)))
-    print (labels_test[preds > threshold])
     print sum(labels_test[preds > threshold]/sum(labels_test))
+
+    # Hard negative mining    
     index_neg = (labels_test == 0) & (preds > threshold)
     index_pos = (labels_test == 1) & (preds < threshold)
     index_total = (index_neg) | (index_pos)
-    print len(labels_test[index_neg])
-    print len(labels_test[index_pos])
-
-    # Hard negative mining
     fds_total = np.concatenate((fds_train,fds_test[index_total]), axis = 0)
     labels_total = np.concatenate((labels_train,labels_test[index_total]), axis = 0)
     clf.fit(fds_total,labels_total)

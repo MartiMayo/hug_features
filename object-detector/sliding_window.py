@@ -48,14 +48,20 @@ def patch_image_and_label(image, step_size, window_size, lung_image, nodules_ima
 				yield (x, y, image[y: y + window_size[1], x: x + window_size[0]], get_label(image, x, y, window_size, nodules_image, nodules_image_sum, total_area))
 
 if __name__ == '__main__':
-	path_to_images = 'D:/hug_features/luna_preprocess/'
-	path_to_positives = 'D:/hug_features/data/luna_preprocess/positives/'
-	path_to_negatives = 'D:/hug_features/data/luna_preprocess/negatives/'
+	path_to_images = '/home/belizalde/Documents/hug_features/luna_preprocess/'
+	path_to_dump = '/home/belizalde/Documents/hug_features/data/luna_preprocess/'
+	path_to_positives = path_to_dump + 'positives/'
+	path_to_negatives = path_to_dump + 'negatives/'
+	window_size = [32,32]
+	step_size = [2,2]
+	min_wdw_sz = [32,32]
 	total_area = window_area(window_size)
 	pos_counter=1
 	neg_counter=1
+	patient_id = 0
 	for file_path in glob.glob(path_to_images + "*npz"):
 	    patient = load_patient(file_path)
+	    patient_id += 1
 	    if (patient.shape[0] < 3):
 	    	print("Patient " + file_path.split('/')[-1] + " does not have the nodule level so we skip him")
 	    	continue
@@ -68,18 +74,18 @@ if __name__ == '__main__':
 	    		level0_image = patient[0, sl]
 	    		level1_image = patient[1, sl]
 	    		level2_image = patient[2, sl]
-		    	patched_image = patch_image(level0_image, step_size, min_wdw_sz, level1_image, level2_image, level2_image.sum(), total_area)
+		    	patched_image = patch_image_and_label(level0_image, step_size, min_wdw_sz, level1_image, level2_image, level2_image.sum(), total_area)
 		    	list_patches = list(patched_image)
 		    	print("Dumping the results: slice " + str(si+1) + " out of " + str(len(slices_with_nodules)))
 		    	for i, patch in enumerate(list_patches):
 		    		if i % 2000 == 0:
 		    			print("Patch " + str(i) + " out of " + str(len(list_patches)))
 		    		if patch[3] == True:
-		    			np.savez(path_to_positives + str(pos_counter) + '.npz', patch[2])
+		    			np.savez(path_to_positives + str(patient_id) + '_' + str(pos_counter) + '.npz', patch[2])
 		    			pos_counter += 1
 		    		else:
-		    			np.savez(path_to_negatives + str(neg_counter) + '.npz', patch[2])
-		    			neg_counter += 1
+		    			np.savez(path_to_negatives +str(patient_id) + '_' +  str(neg_counter) + '.npz', patch[2])
+		    			neg_counter += 1			
 	    else:
 	    	print("Patient " + file_path + " has no slices with nodules")
 
