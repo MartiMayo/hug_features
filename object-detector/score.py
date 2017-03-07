@@ -40,18 +40,12 @@ def process(clf, patient, step_size, window_size):
 
 
 if __name__ == '__main__':
-    # Parse the command line arguments
-    parser = ap.ArgumentParser()
-    parser.add_argument('-d', "--path_dataset", help="Path to the dataset to be scored", required=True)
-    args = vars(parser.parse_args())
-
     # Load the classifier
     classifier = joblib.load(model_path)
-
-    path_dataset =  args["path_dataset"]
+    
     print("The dataset with the images to score is:")
-    print(path_dataset)
-    for file_path in glob.glob(path_dataset + "*.npz"):
+    print(score_images_path)
+    for file_path in glob.glob(score_images_path + "*.npz"):
         patient = load_patient(file_path)
         print("Loaded patient " + file_path)
         detections = process(classifier, patient, step_size, min_wdw_sz)

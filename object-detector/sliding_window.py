@@ -3,6 +3,7 @@ import os
 import sys
 import glob
 import random
+from config import *
 
 def load_patient(path):
 	"""
@@ -48,13 +49,10 @@ def patch_image_and_label(image, step_size, window_size, lung_image, nodules_ima
 				yield (x, y, image[y: y + window_size[1], x: x + window_size[0]], get_label(image, x, y, window_size, nodules_image, nodules_image_sum, total_area))
 
 if __name__ == '__main__':
-	path_to_images = 'D:/hug_features/luna_preprocess/'
-	path_to_positives = 'D:/hug_features/data/luna_preprocess/positives/'
-	path_to_negatives = 'D:/hug_features/data/luna_preprocess/negatives/'
 	total_area = window_area(window_size)
 	pos_counter=1
 	neg_counter=1
-	for file_path in glob.glob(path_to_images + "*npz"):
+	for file_path in glob.glob(train_images_path + "*npz"):
 	    patient = load_patient(file_path)
 	    if (patient.shape[0] < 3):
 	    	print("Patient " + file_path.split('/')[-1] + " does not have the nodule level so we skip him")
@@ -75,12 +73,10 @@ if __name__ == '__main__':
 		    		if i % 2000 == 0:
 		    			print("Patch " + str(i) + " out of " + str(len(list_patches)))
 		    		if patch[3] == True:
-		    			np.savez(path_to_positives + str(pos_counter) + '.npz', patch[2])
+		    			np.savez(pos_im_patch + str(pos_counter) + '.npz', patch[2])
 		    			pos_counter += 1
 		    		else:
-		    			np.savez(path_to_negatives + str(neg_counter) + '.npz', patch[2])
+		    			np.savez(neg_im_patch + str(neg_counter) + '.npz', patch[2])
 		    			neg_counter += 1
 	    else:
 	    	print("Patient " + file_path + " has no slices with nodules")
-
-	

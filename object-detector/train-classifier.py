@@ -14,27 +14,17 @@ from sklearn import metrics
 import random
 
 if __name__ == "__main__":
-    # Parse the command line arguments
-    parser = ap.ArgumentParser()
-    parser.add_argument('-p', "--posfeat", help="Path to the positive features directory", required=True)
-    parser.add_argument('-n', "--negfeat", help="Path to the negative features directory", required=True)
-    parser.add_argument('-c', "--classifier", help="Classifier to be used", default="LIN_SVM")
-    args = vars(parser.parse_args())
-
-    pos_feat_path =  args["posfeat"]
-    neg_feat_path = args["negfeat"]
-
-    # Classifiers supported
-    clf_type = args['classifier']
+    # Classifier type
+    clf_type = "LIN_SVM"
 
     random.seed(20)
 
-    pos_feat = pickle.load(open(os.path.join(pos_feat_ph, 'pos.p'), 'rb'))
+    pos_feat = pickle.load(open(os.path.join(pos_feat_path, 'pos.p'), 'rb'))
     pos_feat = np.vstack(pos_feat)
     n_pos_train = 15000
     idx_pos =  np.random.choice(len(pos_feat), size=n_pos_train,replace = False)
 
-    neg_feat = pickle.load(open(os.path.join(neg_feat_ph, 'neg.p'), 'rb'))
+    neg_feat = pickle.load(open(os.path.join(neg_feat_path, 'neg.p'), 'rb'))
     neg_feat = np.vstack(neg_feat)
     #neg_feat = neg_feat[np.arange(15000),:]
     n_neg_train = 15000
@@ -53,9 +43,9 @@ if __name__ == "__main__":
     print "Training ..."
     clf.fit(fds_train, labels_train)
     # If feature directories don't exist, create them
-    
+
     preds = clf.predict_proba(fds_test)[:,1]
-    threshold = 0.55 
+    threshold = 0.55
     fpr, tpr, thresholds = metrics.roc_curve(labels_test, preds, pos_label=1)
     sc = clf.score(fds_test, labels_test)
     print("The score is: " + str(sc))
@@ -78,7 +68,7 @@ if __name__ == "__main__":
 
     print "Classifier saved to {}".format(model_path)
     preds = clf.predict_proba(fds_test)[:,1]
-       
+
     fpr, tpr, thresholds = metrics.roc_curve(labels_test, preds, pos_label=1)
     sc = clf.score(fds_test, labels_test)
     print("The score is: " + str(sc))

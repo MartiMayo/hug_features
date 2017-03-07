@@ -14,23 +14,13 @@ import numpy as np
 import pickle
 
 if __name__ == "__main__":
-    # Parse the command line arguments
-    parser = ap.ArgumentParser()
-    parser.add_argument('-p', "--posfeat", help="Path to the positive features directory", required=True)
-    parser.add_argument('-n', "--negfeat", help="Path to the negative features directory", required=True)
-    parser.add_argument('-c', "--classifier", help="Classifier to be used", default="LIN_SVM")
-    args = vars(parser.parse_args())
-
-    pos_feat_path =  args["posfeat"]
-    neg_feat_path = args["negfeat"]
-
-    # Classifiers supported
-    clf_type = args['classifier']
+    # Classifier
+    clf_type = "LIN_SVM"
 
     fds = []
     labels = []
     n_pos_train = 5000
-    pos_feat = pickle.load(open(os.path.join(pos_feat_ph, 'pos.p'), 'rb'))
+    pos_feat = pickle.load(open(os.path.join(pos_feat_path, 'pos.p'), 'rb'))
     # Load the positive features
     for i in list(range(n_pos_train,4000)):
         fd = pos_feat[i]
@@ -40,7 +30,7 @@ if __name__ == "__main__":
         labels.append(1)
     del pos_feat
 
-    neg_feat = pickle.load(open(os.path.join(neg_feat_ph, 'neg.p'), 'rb'))
+    neg_feat = pickle.load(open(os.path.join(neg_feat_path, 'neg.p'), 'rb'))
     # Load the negative features
     n_neg_train = 5000
     for i in list(range(n_neg_train,20000)):
