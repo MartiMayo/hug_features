@@ -13,37 +13,23 @@ from scipy.misc import toimage
 import pickle
 
 if __name__ == "__main__":
-    # Argument Parser
-    parser = ap.ArgumentParser()
-    parser.add_argument('-p', "--pospath", help="Path to positive images",
-            required=True)
-    parser.add_argument('-n', "--negpath", help="Path to negative images",
-            required=True)
-    parser.add_argument('-d', "--descriptor", help="Descriptor to be used -- HOG",
-            default="HOG")
-    args = vars(parser.parse_args())
-
-    pos_im_path = args["pospath"]
-    neg_im_path = args["negpath"]
-
-    des_type = args["descriptor"]
 
     # If feature directories don't exist, create them
-    if not os.path.isdir(pos_feat_ph):
-        os.makedirs(pos_feat_ph)
+    if not os.path.isdir(pos_feat_path):
+        os.makedirs(pos_feat_path)
 
     # If feature directories don't exist, create them
-    if not os.path.isdir(neg_feat_ph):
-        os.makedirs(neg_feat_ph)
+    if not os.path.isdir(neg_feat_path):
+        os.makedirs(neg_feat_path)
 
     list_pos = []
     print "Calculating the descriptors for the positive samples and saving them"
-    for im_path in glob.glob(os.path.join(pos_im_path, "*")):
+    for im_path in glob.glob(os.path.join(pos_im_patch, "*")):
         im = np.load(im_path)
         im_rep = str.replace(im_path,pos_im_path + '/',"")
         patient_id = np.array([float(str.split(im_rep,"_")[0])])
-        key_im = im.keys()[0]
-        im = im[key_im]
+        key = im.keys()[0]
+        im = im[key]
         im = toimage(im)
         im = np.asarray(im)
         fd = hog(im, orientations, pixels_per_cell, cells_per_block, visualize, normalize)
@@ -51,7 +37,7 @@ if __name__ == "__main__":
         list_pos.append(fd)
     pickle.dump(list_pos, open(os.path.join(pos_feat_ph, 'pos.p'), 'wb'))
     del list_pos
-    print "Positive features saved in {}".format(pos_feat_ph)
+    print "Positive features saved in {}".format(pos_feat_path)
 
     list_neg = []
     print "Calculating the descriptors for the negative samples and saving them"
@@ -59,8 +45,8 @@ if __name__ == "__main__":
         im = np.load(im_path) 
         im_rep = str.replace(im_path ,neg_im_path + '/',"")
         patient_id = np.array([float(str.split(im_rep,"_")[0])])
-        key_im = im.keys()[0]
-        im = im[key_im]
+        key = im.keys()[0]
+        im = im[key]
         im = toimage(im)
         im = np.asarray(im)
         fd = hog(im,  orientations, pixels_per_cell, cells_per_block, visualize, normalize)
@@ -70,5 +56,6 @@ if __name__ == "__main__":
             break
     pickle.dump(list_neg, open(os.path.join(neg_feat_ph, 'neg.p'), 'wb'))
     print "Negative features saved in {}".format(neg_feat_ph)
+
 
     print "Completed calculating features from training images"
